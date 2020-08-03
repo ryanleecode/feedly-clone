@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
   entry: {
@@ -21,6 +22,10 @@ module.exports = {
         test: /\.tsx?$/,
         loader: 'babel-loader',
       },
+      {
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
+      },
     ],
   },
   devServer: {
@@ -29,13 +34,16 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json'],
     alias: {
-      'fp-ts/lib': 'fp-ts/es6'
-    }
-  }, 
+      'fp-ts/lib': 'fp-ts/es6',
+    },
+  },
   plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'styles.css',
+      chunkFilename: 'styles.css',
+    }),
     new HtmlWebpackPlugin({
       template: 'assets/index.html',
     }),
   ],
 }
- 
