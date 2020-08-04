@@ -1,6 +1,7 @@
 import * as React from 'elm-ts/lib/React'
 import { render } from 'react-dom'
-import * as component from './counter'
+import { programWithDebugger } from 'elm-ts/lib/Debug/Html'
+import * as component from './feed'
 import './styles.css'
 
 const program =
