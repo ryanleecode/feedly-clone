@@ -1,5 +1,5 @@
 {
-  "name": "elm-ts-starter",
+  "name": "news-feed-app-frontend",
   "private": true,
   "version": "1.0.0",
   "description": "",
@@ -20,6 +20,7 @@
     "fp-ts": "^2.7.1",
     "fp-ts-contrib": "^0.1.17",
     "io-ts": "^2.2.9",
+    "io-ts-reporters": "^1.2.2",
     "io-ts-types": "^0.5.8",
     "mini-css-extract-plugin": "^0.9.0",
     "monocle-ts": "^2.3.3",
@@ -29,7 +30,8 @@
     "react-dom": "^16.13.1",
     "rss-parser": "^3.9.0",
     "rxjs": "^6.6.2",
-    "tailwindcss": "^1.6.2"
+    "tailwindcss": "^1.6.2",
+    "tailwindcss-classnames": "^1.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.11.0",

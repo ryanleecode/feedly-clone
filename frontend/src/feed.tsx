@@ -2,19 +2,23 @@ import * as React from 'react'
 import { cmd } from 'elm-ts/lib'
 import { Html } from 'elm-ts/lib/React'
 import * as t from 'io-ts'
-import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
 import * as A from 'fp-ts/lib/Array'
 import * as O from 'fp-ts/lib/Option'
 import * as I from 'fp-ts/lib/Identity'
 import * as E from 'fp-ts/lib/Either'
 import { flow, pipe } from 'fp-ts/lib/function'
+import { classnames } from 'tailwindcss-classnames'
 import * as rss from './rss'
+import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
 
 const { summon } = summonFor({})
 
 // --- Model
 export const NewsItem = summon((F) =>
-  F.interface({ title: F.string() }, 'NewsItem'),
+  F.interface(
+    { title: F.string(), description: F.nullable(F.string()) },
+    'NewsItem',
+  ),
 )
 
 export type Model = {
@@ -28,7 +32,7 @@ export const init: [Model, cmd.Cmd<Msg>] = [{ feedURL: '', feed: [] }, cmd.none]
 export type Msg =
   | { type: 'GetRSSFeed' }
   | { type: 'RSSFeedError' }
-  | { type: 'RSSFeedParsed'; payload: rss.ParserOutput }
+  | { type: 'RSSFeedParsed'; payload: rss.RSSFeed }
   | { type: 'UpdateFeedURL'; payload: string }
 
 // --- Update
@@ -53,17 +57,17 @@ export function update(msg: Msg, model: Model): [Model, cmd.Cmd<Msg>] {
     case 'RSSFeedParsed': {
       const nextFeed = pipe(
         msg.payload.items,
-        O.fromNullable,
         O.map(
           flow(
-            A.map(({ title }) =>
-              pipe(
-                O.fromNullable(title),
-                O.map((title) => NewsItem.build({ title })),
-              ),
+            A.map((item) =>
+              NewsItem.build({
+                title: pipe(
+                  item.title,
+                  O.fold(() => 'No Title', I.identity.of),
+                ),
+                description: item.description,
+              }),
             ),
-            A.filter(O.isSome),
-            A.map(({ value }) => value),
           ),
         ),
         O.fold(() => [], I.identity.of),
@@ -80,6 +84,9 @@ export function update(msg: Msg, model: Model): [Model, cmd.Cmd<Msg>] {
 export function view({ feed }: Model): Html<Msg> {
   return (dispatch) => (
     <div>
+      <header>
+        <h1 className={classnames('text-xl', 'font-semibold')}>My Feed</h1>
+      </header>
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -96,8 +103,15 @@ export function view({ feed }: Model): Html<Msg> {
         <input type="submit" value="Submit" />
       </form>
       <ul>
-        {feed.map((newsItem) => (
-          <li key={newsItem.title}>{newsItem.title}</li>
+        {feed.map(({ title, description }) => (
+          <li key={title}>
+            <span>{title}</span>
+            {O.isSome(description) ? (
+              <>
+                <span> | {description.value}</span>
+              </>
+            ) : null}
+          </li>
         ))}
       </ul>
     </div>
