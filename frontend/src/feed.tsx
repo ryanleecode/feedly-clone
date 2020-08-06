@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cmd } from 'elm-ts/lib'
+import { cmd, http } from 'elm-ts/lib'
 import { Html } from 'elm-ts/lib/React'
 import * as t from 'io-ts'
 import * as A from 'fp-ts/lib/Array'
@@ -10,6 +10,8 @@ import { flow, pipe } from 'fp-ts/lib/function'
 import { classnames } from 'tailwindcss-classnames'
 import * as rss from './rss'
 import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
+import { RSSFeed } from './rss'
+import { formatValidationErrors } from 'io-ts-reporters'
 
 const { summon } = summonFor({})
 
@@ -29,32 +31,29 @@ export type Model = {
 export const init: [Model, cmd.Cmd<Msg>] = [{ feedURL: '', feed: [] }, cmd.none]
 
 // --- Messages
+export type GetRSSFeed = { type: 'GetRSSFeed' }
+export type GetRSSFeedError = { type: 'RSSFeedError'; payload: http.HttpError }
+export type GetRSSFeedParsed = {
+  type: 'GetRSSFeedParsed'
+  payload: rss.RSSFeed
+}
+export type UpdateFeedURL = { type: 'UpdateFeedURL'; payload: string }
 export type Msg =
-  | { type: 'GetRSSFeed' }
-  | { type: 'RSSFeedError' }
-  | { type: 'RSSFeedParsed'; payload: rss.RSSFeed }
-  | { type: 'UpdateFeedURL'; payload: string }
+  | GetRSSFeed
+  | GetRSSFeedError
+  | GetRSSFeedParsed
+  | UpdateFeedURL
 
 // --- Update
 export function update(msg: Msg, model: Model): [Model, cmd.Cmd<Msg>] {
   switch (msg.type) {
     case 'GetRSSFeed':
-      return [
-        model,
-        rss.parseURL<Msg>(
-          flow(
-            E.fold(
-              (): Msg => ({ type: 'RSSFeedError' }),
-              (a): Msg => ({ type: 'RSSFeedParsed', payload: a }),
-            ),
-          ),
-        )(model.feedURL),
-      ]
+      return [model, getRSSFeed('/api/v1/rss')(model.feedURL)]
     case 'UpdateFeedURL':
       return [{ feed: model.feed, feedURL: msg.payload }, cmd.none]
     case 'RSSFeedError':
       return [model, cmd.none]
-    case 'RSSFeedParsed': {
+    case 'GetRSSFeedParsed': {
       const nextFeed = pipe(
         msg.payload.items,
         O.map(
@@ -77,6 +76,37 @@ export function update(msg: Msg, model: Model): [Model, cmd.Cmd<Msg>] {
     }
     default:
       return [model, cmd.none]
+  }
+}
+
+// --- http
+function getRSSFeed(endpoint: string) {
+  return (rssFeedURL: string) => {
+    return pipe(
+      http.get(
+        `${endpoint}?rssURL=${rssFeedURL}`,
+        flow(
+          RSSFeed.type.decode,
+          E.mapLeft(formatValidationErrors),
+          E.mapLeft((a) => a.join(',')),
+        ),
+      ),
+      http.send(
+        flow(
+          E.fold<
+            http.HttpError,
+            rss.RSSFeed,
+            GetRSSFeedError | GetRSSFeedParsed
+          >(
+            (err) => ({ type: 'RSSFeedError', payload: err }),
+            (rssFeed) => ({
+              type: 'GetRSSFeedParsed',
+              payload: rssFeed,
+            }),
+          ),
+        ),
+      ),
+    )
   }
 }
 

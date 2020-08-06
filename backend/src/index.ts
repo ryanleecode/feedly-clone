@@ -86,9 +86,9 @@ const rssFeed = pipe(
       },
     ),
   ),
-  H.ichain(
-    flow(
-      RSSFeed.type.decode,
+  H.ichain((parserOutput) =>
+    pipe(
+      RSSFeed.type.decode(parserOutput),
       E.mapLeft(formatValidationErrors),
       E.mapLeft((a) => a.join(',')),
       E.mapLeft<string, E.Either<[unknown, string], string>>(E.right),
@@ -102,15 +102,13 @@ const rssFeed = pipe(
       H.ichain(() => H.json(rssFeed, () => E.right('encode json failed'))),
     ),
   ),
-  H.orElse((e) =>
-    serverError<E.Either<[unknown, string], string>>(
-      pipe(
-        e,
-        E.fold(() => 'internal server error', I.identity.of),
-      ),
+  H.orElse(
+    flow(
+      E.fold(() => 'internal server error', I.identity.of),
+      serverError,
     ),
   ),
 )
 express()
-  .get('/', toRequestHandler(rssFeed))
+  .get('/api/v1/rss', toRequestHandler(rssFeed))
   .listen(3000, () => console.log('Express listening on port 3000. Use: GET /'))

@@ -7,22 +7,7 @@ import { formatValidationErrors } from 'io-ts-reporters'
 import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
 import * as t from 'io-ts'
 
-export interface AppEnv {}
-const { summon } = summonFor<AppEnv>({})
-const Model = summon((F) =>
-  F.union(
-    [
-      F.interface({ title: F.string() }, 'Title'),
-      F.interface({ description: F.string() }, 'Description'),
-      F.interface(
-        { title: F.string(), description: F.string() },
-        'TitleAndDescription',
-      ),
-    ],
-
-    'Model',
-  ),
-)
+const { summon } = summonFor({})
 
 export const RSSFeedItem = summon((F) =>
   F.interface(
