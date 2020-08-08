@@ -6,12 +6,61 @@ import * as t from 'io-ts'
 import { formatValidationErrors } from 'io-ts-reporters'
 import RSSParser from 'rss-parser'
 import * as E from 'fp-ts/lib/Either'
+import * as TE from 'fp-ts/lib/TaskEither'
+import * as O from 'fp-ts/lib/Option'
 import * as I from 'fp-ts/lib/Identity'
-import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
+import * as A from 'fp-ts/lib/Array'
+import { withValidate, fromRefinement } from 'io-ts-types'
+import { summonFor as summonForESBASTJ } from '@morphic-ts/batteries/lib/summoner-ESBASTJ'
+import { summonFor as summonForBASTJ } from '@morphic-ts/batteries/lib/summoner-BASTJ'
+import { fromTraversable, Iso } from 'monocle-ts'
+import * as T from 'fp-ts/lib/Task'
+import { getLinkPreview } from 'link-preview-js'
+import moment from 'moment'
+import { sequenceT } from 'fp-ts/lib/Apply'
+import pmap from 'p-map'
+import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 
-const { summon } = summonFor({})
+interface IoTsTypes {
+  withValidate: typeof withValidate
+}
 
-export const RSSFeedItem = summon((F) =>
+type SummonConfig = {
+  IoTsURI: IoTsTypes
+}
+
+const { summon: summonESBASTJ } = summonForESBASTJ<SummonConfig>({
+  IoTsURI: { withValidate },
+})
+
+const RSSFeedItemTitleAndDescriptionUnion = summonForBASTJ({}).summon((F) =>
+  F.union(
+    [
+      F.interface(
+        {
+          title: F.string(),
+        },
+        'RSSFeedItemTitle',
+      ),
+      F.interface(
+        {
+          description: F.string(),
+        },
+        'RSSFeedItemDescription',
+      ),
+      F.interface(
+        {
+          title: F.string(),
+          description: F.string(),
+        },
+        'RSSFeedItemTitleAndDescription',
+      ),
+    ],
+    'RSSFeedItemTitleAndDescriptionUnion',
+  ),
+)
+
+export const RSSFeedItem = summonESBASTJ((F) =>
   F.interface(
     {
       title: F.nullable(F.string()),
@@ -24,12 +73,21 @@ export const RSSFeedItem = summon((F) =>
       categories: F.nullable(F.array(F.string())),
     },
     'RSSFeedItem',
+    {
+      IoTsURI: (codec, env) =>
+        env.withValidate(codec, (u, c) =>
+          E.either.chain(
+            RSSFeedItemTitleAndDescriptionUnion.type.validate(u, c),
+            () => codec.validate(u, c),
+          ),
+        ),
+    },
   ),
 )
 
 export type RSSFeedItem = t.TypeOf<typeof RSSFeedItem.type>
 
-export const RSSFeed = summon((F) =>
+export const RSSFeed = summonESBASTJ((F) =>
   F.interface(
     {
       title: F.string(),
@@ -42,6 +100,38 @@ export const RSSFeed = summon((F) =>
 )
 
 export type RSSFeed = t.TypeOf<typeof RSSFeed.type>
+
+const GetRSSFeedDTO = summonESBASTJ((F) =>
+  F.intersection(
+    [
+      RSSFeed(F),
+      F.interface(
+        {
+          items: F.nullable(
+            F.array(
+              F.intersection(
+                [
+                  RSSFeedItem(F),
+                  F.interface(
+                    {
+                      image: F.nullable(F.string()),
+                    },
+                    'RSSFeedImage',
+                  ),
+                ],
+                'RSSFeedItem',
+              ),
+            ),
+          ),
+        },
+        'RSSFeed',
+      ),
+    ],
+    'GetRSSFeedDTO',
+  ),
+)
+
+export type GetRSSFeedDTO = t.TypeOf<typeof GetRSSFeedDTO.type>
 
 function serverError<E = never>(
   message: string,
@@ -95,7 +185,48 @@ const rssFeed = pipe(
       (either) => H.fromEither(either),
     ),
   ),
-  H.map(RSSFeed.type.encode),
+  H.chain((rssFeed) =>
+    pipe(
+      rssFeed.items,
+      O.fold(() => [], I.identity.of),
+      (items) =>
+        pipe(
+          items,
+          A.map(({ link }) => link),
+          A.map(
+            O.fold(
+              () => T.of(O.none),
+              (link) =>
+                pipe(
+                  TE.tryCatch(
+                    () => getLinkPreview(link),
+                    () => O.none,
+                  ),
+                  TE.map((preview) =>
+                    'images' in preview ? A.head(preview.images) : O.none,
+                  ),
+                  TE.fold(() => T.of(O.none), T.of),
+                  withTimeout<O.Option<string>>(O.none, 5000),
+                ),
+            ),
+          ),
+          (tasks) => () => pmap(tasks, (t) => t()),
+          T.map((images) =>
+            A.zipWith(items, images, (item, image) => ({
+              ...item,
+              image,
+            })),
+          ),
+        ),
+      T.map((items) => ({
+        ...rssFeed,
+        items: O.option.map(rssFeed.items, () => items),
+      })),
+      (t) => TE.fromTask<E.Either<[unknown, string], string>, GetRSSFeedDTO>(t),
+      H.fromTaskEither,
+    ),
+  ),
+  H.map(GetRSSFeedDTO.type.encode),
   H.ichain((rssFeed) =>
     pipe(
       H.status<E.Either<[unknown, string], string>>(H.Status.OK),

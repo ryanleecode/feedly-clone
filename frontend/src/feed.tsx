@@ -8,9 +8,9 @@ import * as I from 'fp-ts/lib/Identity'
 import * as E from 'fp-ts/lib/Either'
 import { flow, pipe } from 'fp-ts/lib/function'
 import { classnames } from 'tailwindcss-classnames'
-import * as rss from './rss'
+import * as rss from './lib/rss'
 import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
-import { RSSFeed } from './rss'
+import { RSSFeed } from './lib/rss'
 import { formatValidationErrors } from 'io-ts-reporters'
 
 const { summon } = summonFor({})
@@ -18,7 +18,11 @@ const { summon } = summonFor({})
 // --- Model
 export const NewsItem = summon((F) =>
   F.interface(
-    { title: F.string(), description: F.nullable(F.string()) },
+    {
+      title: F.string(),
+      description: F.nullable(F.string()),
+      imageURL: F.nullable(F.string()),
+    },
     'NewsItem',
   ),
 )
@@ -57,16 +61,15 @@ export function update(msg: Msg, model: Model): [Model, cmd.Cmd<Msg>] {
       const nextFeed = pipe(
         msg.payload.items,
         O.map(
-          flow(
-            A.map((item) =>
-              NewsItem.build({
-                title: pipe(
-                  item.title,
-                  O.fold(() => 'No Title', I.identity.of),
-                ),
-                description: item.description,
-              }),
-            ),
+          A.map((item) =>
+            NewsItem.build({
+              title: pipe(
+                item.title,
+                O.fold(() => 'No Title', I.identity.of),
+              ),
+              description: item.description,
+              imageURL: item.image,
+            }),
           ),
         ),
         O.fold(() => [], I.identity.of),
@@ -92,18 +95,12 @@ function getRSSFeed(endpoint: string) {
         ),
       ),
       http.send(
-        flow(
-          E.fold<
-            http.HttpError,
-            rss.RSSFeed,
-            GetRSSFeedError | GetRSSFeedParsed
-          >(
-            (err) => ({ type: 'RSSFeedError', payload: err }),
-            (rssFeed) => ({
-              type: 'GetRSSFeedParsed',
-              payload: rssFeed,
-            }),
-          ),
+        E.fold<http.HttpError, rss.RSSFeed, GetRSSFeedError | GetRSSFeedParsed>(
+          (err) => ({ type: 'RSSFeedError', payload: err }),
+          (rssFeed) => ({
+            type: 'GetRSSFeedParsed',
+            payload: rssFeed,
+          }),
         ),
       ),
     )
@@ -133,16 +130,32 @@ export function view({ feed }: Model): Html<Msg> {
         <input type="submit" value="Submit" />
       </form>
       <ul>
-        {feed.map(({ title, description }) => (
-          <li key={title}>
-            <span>{title}</span>
-            {O.isSome(description) ? (
-              <>
-                <span> | {description.value}</span>
-              </>
-            ) : null}
-          </li>
-        ))}
+        {feed.map(({ title, description, imageURL }) => {
+          const image = pipe(
+            O.option.map(imageURL, (url) => (
+              <img
+                className={classnames(
+                  ...(['inline'] as const),
+                  ...(['w-40', 'h-24'] as const),
+                )}
+                src={url}
+              />
+            )),
+            O.toNullable,
+          )
+
+          return (
+            <li key={title}>
+              {image}
+              <span>{title}</span>
+              {O.isSome(description) ? (
+                <>
+                  <span> | {description.value}</span>
+                </>
+              ) : null}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
