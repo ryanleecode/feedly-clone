@@ -38,7 +38,6 @@
     "io-ts-reporters": "^1.2.2",
     "io-ts-types": "^0.5.8",
     "link-preview-js": "^2.0.4",
-    "moment": "^2.27.0",
     "monocle-ts": "^2.3.3",
     "newtype-ts": "^0.3.4",
     "nodemon": "^2.0.4",

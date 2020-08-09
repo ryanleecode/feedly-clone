@@ -16,7 +16,6 @@ import { summonFor as summonForBASTJ } from '@morphic-ts/batteries/lib/summoner-
 import { fromTraversable, Iso } from 'monocle-ts'
 import * as T from 'fp-ts/lib/Task'
 import { getLinkPreview } from 'link-preview-js'
-import moment from 'moment'
 import { sequenceT } from 'fp-ts/lib/Apply'
 import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'

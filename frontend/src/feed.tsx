@@ -6,12 +6,17 @@ import * as A from 'fp-ts/lib/Array'
 import * as O from 'fp-ts/lib/Option'
 import * as I from 'fp-ts/lib/Identity'
 import * as E from 'fp-ts/lib/Either'
+import * as rss from './lib/rss'
 import { flow, pipe } from 'fp-ts/lib/function'
 import { classnames } from 'tailwindcss-classnames'
-import * as rss from './lib/rss'
 import { summonFor } from '@morphic-ts/batteries/lib/summoner-BASTJ'
 import { RSSFeed } from './lib/rss'
 import { formatValidationErrors } from 'io-ts-reporters'
+import * as Iso from 'monocle-ts/lib/Iso'
+import * as L from 'monocle-ts/lib/Lens'
+import * as Opt from 'monocle-ts/lib/Optional'
+import parseISO from 'date-fns/fp/parseISO'
+import formatDistanceToNow from 'date-fns/formatDistanceToNow'
 
 const { summon } = summonFor({})
 
@@ -21,10 +26,23 @@ export const NewsItem = summon((F) =>
     {
       title: F.string(),
       description: F.nullable(F.string()),
+      link: F.nullable(F.string()),
+      author: F.nullable(F.string()),
+      isoDate: F.nullable(F.string()),
       imageURL: F.nullable(F.string()),
     },
     'NewsItem',
   ),
+)
+
+export const RelativeTimeISO = Iso.asOptional<string, string>({
+  get: flow(parseISO, (date) => formatDistanceToNow(date, { addSuffix: true })),
+  reverseGet: (a) => a,
+})
+
+const NewsItemRelativeTime = pipe(
+  NewsItem.optionalFromOptionProp('isoDate'),
+  Opt.compose(RelativeTimeISO),
 )
 
 export type Model = {
@@ -68,6 +86,9 @@ export function update(msg: Msg, model: Model): [Model, cmd.Cmd<Msg>] {
                 O.fold(() => 'No Title', I.identity.of),
               ),
               description: item.description,
+              link: item.link,
+              author: item.author,
+              isoDate: item.isoDate,
               imageURL: item.image,
             }),
           ),
@@ -130,13 +151,12 @@ export function view({ feed }: Model): Html<Msg> {
         <input type="submit" value="Submit" />
       </form>
       <ul>
-        {feed.map(({ title, description, imageURL }) => {
+        {feed.map((newsItem) => {
           const image = pipe(
-            O.option.map(imageURL, (url) => (
+            O.option.map(newsItem.imageURL, (url) => (
               <img
                 className={classnames(
-                  ...(['inline'] as const),
-                  ...(['w-40', 'h-24'] as const),
+                  ...(['inline', ...['w-40', 'h-24']] as const),
                 )}
                 src={url}
               />
@@ -144,14 +164,17 @@ export function view({ feed }: Model): Html<Msg> {
             O.toNullable,
           )
 
+          const relativeTime = NewsItemRelativeTime.getOption(newsItem)
+
           return (
-            <li key={title}>
+            <li key={newsItem.title}>
               {image}
-              <span>{title}</span>
-              {O.isSome(description) ? (
-                <>
-                  <span> | {description.value}</span>
-                </>
+              <span>{newsItem.title}</span>
+              {O.isSome(newsItem.description) ? (
+                <span> | {newsItem.description.value}</span>
+              ) : null}
+              {O.isSome(relativeTime) ? (
+                <span> | {relativeTime.value}</span>
               ) : null}
             </li>
           )
