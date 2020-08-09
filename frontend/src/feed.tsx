@@ -17,6 +17,7 @@ import * as L from 'monocle-ts/lib/Lens'
 import * as Opt from 'monocle-ts/lib/Optional'
 import parseISO from 'date-fns/fp/parseISO'
 import formatDistanceToNow from 'date-fns/formatDistanceToNow'
+import { Img } from 'react-image'
 
 const { summon } = summonFor({})
 
@@ -133,7 +134,7 @@ export function view({ feed }: Model): Html<Msg> {
   return (dispatch) => (
     <div>
       <header>
-        <h1 className={classnames('text-xl', 'font-semibold')}>My Feed</h1>
+        <h1 className="text-xl, font-semibold">My Feed</h1>
       </header>
       <form
         onSubmit={(e) => {
@@ -152,23 +153,27 @@ export function view({ feed }: Model): Html<Msg> {
       </form>
       <ul>
         {feed.map((newsItem) => {
-          const image = pipe(
-            O.option.map(newsItem.imageURL, (url) => (
-              <img
-                className={classnames(
-                  ...(['inline', ...['w-40', 'h-24']] as const),
-                )}
-                src={url}
-              />
-            )),
-            O.toNullable,
-          )
-
           const relativeTime = NewsItemRelativeTime.getOption(newsItem)
 
           return (
             <li key={newsItem.title}>
-              {image}
+              <Img
+                className="object-scale-down rounded"
+                src={O.toUndefined(newsItem.imageURL) || ''}
+                container={(children) => (
+                  <div className="inline-flex justify-center w-32 h-20">
+                    {children}
+                  </div>
+                )}
+                loader={
+                  <div className="animate-pulse inline-block">
+                    <div className="bg-gray-400 w-32 h-20" />
+                  </div>
+                }
+                unloader={
+                  <div className="inline-flex object-scale-down rounded w-32 h-20" />
+                }
+              />
               <span>{newsItem.title}</span>
               {O.isSome(newsItem.description) ? (
                 <span> | {newsItem.description.value}</span>
