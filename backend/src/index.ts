@@ -19,9 +19,7 @@ import { getLinkPreview } from 'link-preview-js'
 import { sequenceT } from 'fp-ts/lib/Apply'
 import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
-import { MikroORM } from 'mikro-orm'
 import kill from 'kill-port'
-import { FeedItem } from './entities/feed-item'
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -244,18 +242,7 @@ const rssFeed = pipe(
 )
 
 async function main() {
-  const orm = await MikroORM.init({
-    entitiesDirs: ['./dist/entities'],
-    entitiesDirsTs: ['./src/entities'],
-    dbName: 'news-feed-app',
-    type: 'mongo',
-  })
-
   await kill(3000, 'tcp')
-
-  const repo = orm.em.getRepository<FeedItem>('FeedItem')
-  const author = repo.create({}) // instance of internal Author class
-  await repo.persistAndFlush(author)
 
   express()
     .get('/api/v1/rss', toRequestHandler(rssFeed))
