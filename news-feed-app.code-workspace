@@ -8,6 +8,7 @@
 	}
 ],
 	"settings": {
-		"typescript.tsdk": "frontend/node_modules/typescript/lib"
+		"typescript.tsdk": "frontend/node_modules/typescript/lib",
+		"discord.enabled": true
 	}
 }
