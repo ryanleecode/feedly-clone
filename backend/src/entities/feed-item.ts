@@ -1,15 +1,32 @@
-import * as Eq from 'io-ts/lib/Eq'
-import * as G from 'io-ts/lib/Guard'
-import * as S from 'io-ts/lib/Schema'
-import * as D from '../io-ts/Decoder'
+import { withValidate } from 'io-ts-types'
+import { summonFor } from '@morphic-ts/batteries/lib/summoner-ESBASTJ'
+import { ObjectID } from '../mongodb/ObjectID'
 
-const FeedItem = S.make((F) =>
+/* const FeedItem = S.make((F) =>
   F.type({
     _id: F.ObjectID,
     title: F.string,
   }),
-)
+) */
 
-export const decoder = S.interpreter(D.Schemable)(FeedItem)
-export const guardPerson = S.interpreter(G.Schemable)(FeedItem)
-export const eqPerson = S.interpreter(Eq.Schemable)(FeedItem)
+interface IoTsTypes {
+  withValidate: typeof withValidate
+}
+
+type SummonConfig = {
+  IoTsURI: IoTsTypes
+}
+
+const { summon } = summonFor<SummonConfig>({
+  IoTsURI: { withValidate },
+})
+
+const FeedItem = summon((F) =>
+  F.interface(
+    {
+      _id: F.string({ IoTsURI: (codec, env) => env.withValidate(ObjectID) }),
+      title: F.string(),
+    },
+    'FeedItem',
+  ),
+)
