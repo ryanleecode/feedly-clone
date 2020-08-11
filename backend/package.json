@@ -40,6 +40,7 @@
     "io-ts-types": "^0.5.8",
     "kill-port": "^1.6.1",
     "link-preview-js": "^2.0.4",
+    "mongad": "^0.2.2",
     "mongodb": "^3.6.0",
     "monocle-ts": "^2.3.3",
     "newtype-ts": "^0.3.4",

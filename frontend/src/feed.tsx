@@ -204,10 +204,10 @@ export function view({ feed, date, feedURL }: Model): Html<Msg> {
 
           const relativeTime = pipe(
             sequenceT(O.option)(
-              O.some({
+              O.of({
                 addSuffix: true,
               }),
-              O.some(date),
+              O.of(date),
               O.option.map(newsItem.isoDate, parseISO),
             ),
             O.map(tupled(formatDistanceStrictWithOptions)),

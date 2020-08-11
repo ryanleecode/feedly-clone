@@ -20,6 +20,7 @@ import { sequenceT } from 'fp-ts/lib/Apply'
 import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 import kill from 'kill-port'
+import * as mongad from 'mongad'
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -243,6 +244,14 @@ const rssFeed = pipe(
 
 async function main() {
   await kill(3000, 'tcp')
+
+  const derp = pipe(
+    mongad.connect('mongodb://localhost'),
+    TE.map(mongad.getDb('news-feed-app')),
+    TE.chainFirst(mongad.insertOne('yolo', { derp: 'swag' })),
+    TE.chain(mongad.findMany('yolo', {})),
+    TE.map(console.log),
+  )()
 
   express()
     .get('/api/v1/rss', toRequestHandler(rssFeed))
