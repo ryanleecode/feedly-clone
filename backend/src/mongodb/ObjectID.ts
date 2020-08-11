@@ -1,10 +1,17 @@
 import * as O from 'fp-ts/lib/Option'
+import * as E from 'fp-ts/lib/Either'
 import * as mongodb from 'mongodb'
 import * as t from 'io-ts'
 
 import { withValidate, withMessage } from 'io-ts-types'
 import { summonFor } from '@morphic-ts/batteries/lib/summoner-ESBASTJ'
-import { pipe } from 'fp-ts/lib/function'
+import { absurd, flow, identity, pipe, unsafeCoerce } from 'fp-ts/lib/function'
+import * as IO from 'fp-ts/lib/IO'
+import * as IOE from 'fp-ts/lib/IOEither'
+
+// -------------------------------------------------------------------------------------
+// model
+// -------------------------------------------------------------------------------------
 
 export interface ObjectIDBrand {
   readonly ObjectID: unique symbol
@@ -32,8 +39,6 @@ export const ObjectIDFromObjectIDProto = new t.Type<
       : t.failure(u, c),
   (a) => new mongodb.ObjectID(a),
 )
-
-// -- morphic-ts
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -64,3 +69,33 @@ export const ObjectIDSummoner = summon((F) =>
       ),
   }),
 )
+
+// -------------------------------------------------------------------------------------
+// constructors
+// -------------------------------------------------------------------------------------
+
+export function of(): IO.IO<t.Branded<string, ObjectIDBrand>>
+export function of(
+  id?: string | number,
+): IOE.IOEither<Error, t.Branded<string, ObjectIDBrand>>
+export function of(
+  id?: string | number,
+):
+  | IO.IO<t.Branded<string, ObjectIDBrand>>
+  | IOE.IOEither<Error, t.Branded<string, ObjectIDBrand>> {
+  if (id) {
+    return pipe(
+      IOE.tryCatch<Error, string>(
+        () => new mongodb.ObjectID(id).toHexString(),
+        unsafeCoerce,
+      ),
+      IOE.map(flow<[string], t.Branded<string, ObjectIDBrand>>(unsafeCoerce)),
+    )
+  } else {
+    return pipe(
+      new mongodb.ObjectID().toHexString(),
+      flow<[string], t.Branded<string, ObjectIDBrand>>(unsafeCoerce),
+      IO.of,
+    )
+  }
+}
