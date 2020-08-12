@@ -21,6 +21,9 @@ import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 import kill from 'kill-port'
 import * as mongad from 'mongad'
+import { FeedItem } from './entities/FeedItem'
+import * as OID from './mongodb/ObjectID'
+import { ObjectID } from 'mongodb'
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -245,10 +248,18 @@ const rssFeed = pipe(
 async function main() {
   await kill(3000, 'tcp')
 
+  const ruin = FeedItem.encode({
+    _id: OID.of()(),
+    title: 'aaa',
+    description: 'aaa',
+    link: 'aaa',
+    date: new Date(),
+  })
+
   const derp = pipe(
     mongad.connect('mongodb://localhost'),
     TE.map(mongad.getDb('news-feed-app')),
-    TE.chainFirst(mongad.insertOne('yolo', { derp: 'swag' })),
+    TE.chainFirst(mongad.insertOne('yolo', ruin)),
     TE.chain(mongad.findMany('yolo', {})),
     TE.map(console.log),
   )()

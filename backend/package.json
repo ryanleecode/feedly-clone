@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@morphic-ts/batteries": "^2.0.0-alpha.10",
+    "@ryanleecode/mongad": "^0.2.3",
     "@sanity-ts/fetch": "0.0.0",
     "@sanity-ts/fetcher": "0.0.0",
     "cross-fetch": "^3.0.5",
