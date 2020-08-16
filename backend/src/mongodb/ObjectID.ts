@@ -1,11 +1,10 @@
 import * as mongodb from 'mongodb'
 import * as t from 'io-ts'
-
 import { withMessage } from 'io-ts-types'
 import { identity, unsafeCoerce } from 'fp-ts/lib/function'
 import { Eq } from 'fp-ts/lib/Eq'
 import * as IO from 'fp-ts/lib/IO'
-import * as IOE from 'fp-ts/lib/IOEither'
+import * as E from 'fp-ts/lib/Either'
 
 export type ObjectID = t.TypeOf<typeof ObjectID>
 
@@ -23,17 +22,27 @@ export const eqObjectId: Eq<ObjectID> = {
   equals: (x, y) => x.equals(y),
 }
 
-export function of(): IO.IO<ObjectID>
-export function of(id: string | number): IOE.IOEither<Error, ObjectID>
-export function of(
+export function create(): IO.IO<ObjectID>
+export function create(id: string | number): E.Either<Error, ObjectID>
+export function create(
   id?: string | number,
-): IO.IO<ObjectID> | IOE.IOEither<Error, ObjectID> {
+): IO.IO<ObjectID> | E.Either<Error, ObjectID> {
   if (id) {
-    return IOE.tryCatch<Error, ObjectID>(
+    return E.tryCatch<Error, ObjectID>(
       () => new mongodb.ObjectID(id),
       unsafeCoerce,
     )
   } else {
-    return IO.of(new mongodb.ObjectID())
+    return () => new mongodb.ObjectID()
   }
+}
+
+export const isValid = mongodb.ObjectID.isValid
+
+export function timestamp(objectId: ObjectID): Date {
+  return objectId.getTimestamp()
+}
+
+export function hexString(objectId: ObjectID): string {
+  return objectId.toHexString()
 }

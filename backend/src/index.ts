@@ -19,11 +19,16 @@ import { getLinkPreview } from 'link-preview-js'
 import { sequenceT } from 'fp-ts/lib/Apply'
 import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
-import kill from 'kill-port'
 import * as mongad from 'mongad'
-import { FeedItem } from './entities/FeedItem'
+import { FeedItem } from './models/FeedItem'
 import * as OID from './mongodb/ObjectID'
 import { ObjectID } from 'mongodb'
+import { MikroORM } from 'mikro-orm'
+import dotenv from 'dotenv-safe'
+import { FeedSource } from './models/FeedSource'
+import mongoose, { mongo } from 'mongoose'
+
+dotenv.config()
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -246,13 +251,27 @@ const rssFeed = pipe(
 )
 
 async function main() {
-  await kill(3000, 'tcp')
+  const connection = await mongoose.connect(
+    'mongodb://localhost/news-feed-app',
+    {
+      useNewUrlParser: true,
+    },
+  )
 
-  const ruin = FeedItem.encode({
+  /*   await orm.em.getDriver().ensureIndexes()
+
+  const feedSourceRepo = orm.em.getRepository<FeedSource>('FeedSource')
+  const feedSource = feedSourceRepo.create(
+    pipe({ _id: new ObjectID(), fqdn: 'yolo' }, FeedSource.encode),
+  )
+
+  feedSourceRepo.persistAndFlush(feedSource) */
+
+  /*   const ruin = FeedItem.encode({
     _id: OID.of()(),
     title: 'aaa',
     description: 'aaa',
-    link: 'aaa',
+    link: 'aaa', 
     date: new Date(),
   })
 
@@ -262,7 +281,7 @@ async function main() {
     TE.chainFirst(mongad.insertOne('yolo', ruin)),
     TE.chain(mongad.findMany('yolo', {})),
     TE.map(console.log),
-  )()
+  )() */
 
   express()
     .get('/api/v1/rss', toRequestHandler(rssFeed))
