@@ -1,26 +1,15 @@
-import { ReaderTaskEither } from 'fp-ts/lib/ReaderTaskEither'
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject'
 import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
-import { Cursor, Db, MongoClient } from 'mongodb'
-import mongad from 'mongad'
+import { Cursor, Db } from 'mongodb'
 import { FeedSource } from '../models/FeedSource'
-import { flow, pipe } from 'fp-ts/lib/function'
-import { identity } from 'fp-ts'
+import { pipe } from 'fp-ts/lib/function'
 
 interface Order {
   id: number
   productName: string
   price: string
   purchaseDate: Date
-}
-
-interface Company {
-  id: number
-  name: string
-  city: string
-  countryCode: string
-  orders?: Order[]
 }
 
 /* export declare const db: Db

@@ -10,23 +10,16 @@ import * as TE from 'fp-ts/lib/TaskEither'
 import * as O from 'fp-ts/lib/Option'
 import * as I from 'fp-ts/lib/Identity'
 import * as A from 'fp-ts/lib/Array'
-import { withValidate, fromRefinement } from 'io-ts-types'
+import { withValidate } from 'io-ts-types'
 import { summonFor as summonForESBASTJ } from '@morphic-ts/batteries/lib/summoner-ESBASTJ'
 import { summonFor as summonForBASTJ } from '@morphic-ts/batteries/lib/summoner-BASTJ'
-import { fromTraversable, Iso } from 'monocle-ts'
 import * as T from 'fp-ts/lib/Task'
 import { getLinkPreview } from 'link-preview-js'
-import { sequenceT } from 'fp-ts/lib/Apply'
 import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
-import * as mongad from 'mongad'
-import { FeedItem } from './models/FeedItem'
-import * as OID from './mongodb/ObjectID'
-import { ObjectID } from 'mongodb'
-import { MikroORM } from 'mikro-orm'
 import dotenv from 'dotenv-safe'
-import { FeedSource } from './models/FeedSource'
-import mongoose, { mongo } from 'mongoose'
+import { MongoClient, ObjectID } from 'mongodb'
+import { FeedItem } from './models/FeedItem'
 
 dotenv.config()
 
@@ -251,13 +244,26 @@ const rssFeed = pipe(
 )
 
 async function main() {
-  const connection = await mongoose.connect(
-    'mongodb://localhost/news-feed-app',
-    {
-      useNewUrlParser: true,
-    },
+  const client = await MongoClient.connect(
+    `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}`,
+    { useNewUrlParser: true, useUnifiedTopology: true },
   )
 
+  const db = client.db(`${process.env.DB_NAME}`)
+
+  try {
+    await db.collection<FeedItem>('FeedItem').insertOne({
+      _id: new ObjectID(),
+      title: 'aa',
+      fqdn: 'aaa',
+      date: new Date() as any,
+    })
+
+    const yolo = await db.collection<FeedItem>('FeedItem').find().toArray()
+    console.log(yolo)
+  } catch (err) {
+    console.error(err)
+  }
   /*   await orm.em.getDriver().ensureIndexes()
 
   const feedSourceRepo = orm.em.getRepository<FeedSource>('FeedSource')

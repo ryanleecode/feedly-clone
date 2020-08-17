@@ -6,7 +6,7 @@ export const FeedItem = t.exact(
     t.type({
       _id: ObjectID,
       title: t.string,
-      link: t.string,
+      fqdn: t.string,
       date: t.unknown,
     }),
     t.partial({

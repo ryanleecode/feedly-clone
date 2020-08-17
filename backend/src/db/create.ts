@@ -19,21 +19,31 @@ async function main() {
       await Promise.all(collections.map((collection) => collection.drop()))
     }
 
-    const collections = [
+    const collectionNames = [
       { name: 'FeedSource', schema: feedSourceSchema },
-      { name: 'FeedItem', schema: feedItemSchema },
+      {
+        name: 'FeedItem',
+        schema: feedItemSchema,
+      },
     ]
     await Promise.all(
-      collections.map(({ name, schema }) =>
-        db.createCollection(name, {
-          validator: {
-            $jsonSchema: schema,
-          },
-        }),
+      collectionNames.map(
+        async ({ name, schema: { $jsonSchema, indices = [] } }) => {
+          const collection = await db.createCollection(name, {
+            validator: {
+              $jsonSchema,
+            },
+          })
+
+          await Promise.all(
+            indices.map(({ name, unique }) =>
+              collection.createIndex({ [name]: 1 }, { unique }),
+            ),
+          )
+        },
       ),
     )
-
-    console.log('?')
+    process.exit(0)
   } catch (err) {
     console.error(err)
     process.exit(1)

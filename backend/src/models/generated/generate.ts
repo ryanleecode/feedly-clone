@@ -71,11 +71,11 @@ async function main() {
   const schemas = [
     {
       name: 'FeedItem',
-      schema: feedItemSchema,
+      jsonSchema: feedItemSchema.$jsonSchema,
     },
     {
       name: 'FeedSource',
-      schema: feedSourceSchema,
+      jsonSchema: feedSourceSchema.$jsonSchema,
     },
   ]
 
@@ -85,18 +85,15 @@ import { ObjectID } from '../../mongodb/ObjectID'
 `
 
   const declarations = pipe(
-    A.array.map(schemas, ({ name, schema }) =>
-      pipe(to(schema), t.exactCombinator, asDeclaration(name), t.printRuntime),
+    A.array.map(schemas, ({ name, jsonSchema }) =>
+      pipe(
+        to(jsonSchema),
+        t.exactCombinator,
+        asDeclaration(name),
+        t.printRuntime,
+      ),
     ),
   ).join('\n\n')
-
-  const declarations2 = pipe(
-    A.array.map(schemas, ({ name, schema }) =>
-      pipe(to(schema), t.exactCombinator, asDeclaration(name), t.printStatic),
-    ),
-  ).join('\n\n')
-
-  console.log(declarations2)
 
   const source = imports + '\n' + declarations
 
