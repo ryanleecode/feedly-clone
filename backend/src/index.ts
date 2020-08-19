@@ -19,11 +19,16 @@ import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 import dotenv from 'dotenv-safe'
 import { MongoClient, ObjectID } from 'mongodb'
+import Mongo from 'mongodb'
 import { FeedItem } from './models/FeedItem'
 import { FeedSourceController } from './controllers/FeedController'
 import bodyParser from 'body-parser'
+import { pollFeedSources } from './jobs/pollFeedSources'
+import * as rx from 'rxjs'
+import * as rxo from 'rxjs/operators'
 
 dotenv.config()
+;(global as any).Mongo = Mongo
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -253,45 +258,11 @@ async function main() {
 
   const db = client.db(`${process.env.DB_NAME}`)
 
-  try {
-    await db.collection<FeedItem>('FeedItem').insertOne(
-      FeedItem.encode({
-        _id: new ObjectID(),
-        title: 'aa',
-        fqdn: 'aaa',
-        date: new Date(),
-      }),
-    )
-
-    const yolo = await db.collection<FeedItem>('FeedItem').find().toArray()
-    console.log(yolo)
-  } catch (err) {
-    console.error(err)
-  }
-  /*   await orm.em.getDriver().ensureIndexes()
-
-  const feedSourceRepo = orm.em.getRepository<FeedSource>('FeedSource')
-  const feedSource = feedSourceRepo.create(
-    pipe({ _id: new ObjectID(), fqdn: 'yolo' }, FeedSource.encode),
-  )
-
-  feedSourceRepo.persistAndFlush(feedSource) */
-
-  /*   const ruin = FeedItem.encode({
-    _id: OID.of()(),
-    title: 'aaa',
-    description: 'aaa',
-    link: 'aaa', 
-    date: new Date(),
-  })
-
-  const derp = pipe(
-    mongad.connect('mongodb://localhost'),
-    TE.map(mongad.getDb('news-feed-app')),
-    TE.chainFirst(mongad.insertOne('yolo', ruin)),
-    TE.chain(mongad.findMany('yolo', {})),
-    TE.map(console.log),
-  )() */
+  rx.timer(0, 60000)
+    .pipe(rxo.mergeMap(() => pollFeedSources({ db })))
+    .subscribe({
+      complete: () => console.log('complete'),
+    })
 
   express()
     .use(bodyParser.json())

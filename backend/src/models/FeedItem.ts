@@ -11,14 +11,14 @@ export const FeedItem = gFeedItem
 
 export const eqFeedItem = Eq.contramap((i: FeedItem) => i._id)(eqObjectId)
 
-type Properties = '_id' | 'title' | 'fqdn' | 'date' | 'description'
+type Properties = '_id' | 'title' | 'link' | 'date' | 'description'
 
 export const schema: Schema<Properties> = {
   $jsonSchema: {
     title: 'FeedSource',
     bsonType: 'object',
     additionalProperties: false,
-    required: ['_id', 'title', 'fqdn', 'date'] as Properties[],
+    required: ['_id', 'title', 'link', 'date'] as Properties[],
     properties: {
       _id: {
         bsonType: 'objectId',
@@ -26,7 +26,7 @@ export const schema: Schema<Properties> = {
       title: {
         bsonType: 'string',
       },
-      fqdn: {
+      link: {
         bsonType: 'string',
       },
       date: {
