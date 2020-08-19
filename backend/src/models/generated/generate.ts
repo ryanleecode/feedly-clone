@@ -2,6 +2,7 @@ import { MongoJSONSchema4 } from 'mongodb-json-schema'
 import { constant, identity, pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/lib/Option'
 import * as A from 'fp-ts/lib/Array'
+import * as E from 'fp-ts/lib/Either'
 import { schema as feedSourceSchema } from '../FeedSource'
 import { schema as feedItemSchema, schema } from '../FeedItem'
 import * as t from 'io-ts-codegen'
@@ -40,7 +41,7 @@ function toInterfaceCombinator(
   )
 }
 
-function to(schema: MongoJSONSchema4): t.TypeReference {
+function to<K extends string>(schema: MongoJSONSchema4<K>): t.TypeReference {
   switch (schema.bsonType) {
     case 'objectId':
       return t.customCombinator('ObjectID', 'ObjectID')
@@ -54,8 +55,22 @@ function to(schema: MongoJSONSchema4): t.TypeReference {
       return t.numberType
     case 'boolean':
       return t.booleanType
+    case 'date':
+      return t.customCombinator('date', 'date')
     case 'object':
       return toInterfaceCombinator(schema)
+    case 'array':
+      return pipe(
+        O.fromNullable(schema.items),
+        O.map((items) => {
+          if (Array.isArray(items)) {
+            return t.tupleCombinator(items.map(to))
+          }
+          return t.arrayCombinator(to(items))
+        }),
+        O.fold((): t.TypeReference => t.unknownArrayType, identity),
+      )
+
     default:
       return t.unknownType
   }
@@ -81,13 +96,14 @@ async function main() {
 
   const imports = `
 import * as t from 'io-ts'
+import { date } from 'io-ts-types'
 import { ObjectID } from '../../mongodb/ObjectID'
 `
 
   const declarations = pipe(
     A.array.map(schemas, ({ name, jsonSchema }) =>
       pipe(
-        to(jsonSchema),
+        to<string>(jsonSchema),
         t.exactCombinator,
         asDeclaration(name),
         t.printRuntime,

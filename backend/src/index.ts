@@ -20,6 +20,8 @@ import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 import dotenv from 'dotenv-safe'
 import { MongoClient, ObjectID } from 'mongodb'
 import { FeedItem } from './models/FeedItem'
+import { FeedSourceController } from './controllers/FeedController'
+import bodyParser from 'body-parser'
 
 dotenv.config()
 
@@ -252,12 +254,14 @@ async function main() {
   const db = client.db(`${process.env.DB_NAME}`)
 
   try {
-    await db.collection<FeedItem>('FeedItem').insertOne({
-      _id: new ObjectID(),
-      title: 'aa',
-      fqdn: 'aaa',
-      date: new Date() as any,
-    })
+    await db.collection<FeedItem>('FeedItem').insertOne(
+      FeedItem.encode({
+        _id: new ObjectID(),
+        title: 'aa',
+        fqdn: 'aaa',
+        date: new Date(),
+      }),
+    )
 
     const yolo = await db.collection<FeedItem>('FeedItem').find().toArray()
     console.log(yolo)
@@ -290,7 +294,14 @@ async function main() {
   )() */
 
   express()
+    .use(bodyParser.json())
+    .use(
+      bodyParser.urlencoded({
+        extended: true,
+      }),
+    )
     .get('/api/v1/rss', toRequestHandler(rssFeed))
+    .use('/api/v1/feed', FeedSourceController({ db }))
     .listen(3000, () =>
       console.log('Express listening on port 3000. Use: GET /'),
     )

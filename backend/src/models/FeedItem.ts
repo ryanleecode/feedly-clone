@@ -1,28 +1,13 @@
-import { eqObjectId, ObjectID } from '../mongodb/ObjectID'
-import { date } from 'io-ts-types'
+import { eqObjectId } from '../mongodb/ObjectID'
 import * as t from 'io-ts'
 import * as Eq from 'fp-ts/lib/Eq'
 import { MongoJSONSchema4 } from 'mongodb-json-schema'
 import { Schema } from './schema'
-// import { FeedItem } from './generated'
+import { FeedItem as gFeedItem } from './generated'
 
-export type FeedItem = t.TypeOf<typeof FeedItem>
+export type FeedItem = t.TypeOf<typeof gFeedItem>
 
-export const FeedItem = t.exact(
-  t.intersection([
-    t.type({
-      _id: ObjectID,
-      title: t.string,
-      fqdn: t.string,
-      date,
-    }),
-    t.partial({
-      description: t.string,
-    }),
-  ]),
-)
-
-/* export { FeedItem } */
+export const FeedItem = gFeedItem
 
 export const eqFeedItem = Eq.contramap((i: FeedItem) => i._id)(eqObjectId)
 

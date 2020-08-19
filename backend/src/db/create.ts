@@ -2,6 +2,7 @@ import dotenv from 'dotenv-safe'
 import { MongoClient } from 'mongodb'
 import { schema as feedSourceSchema } from '../models/FeedSource'
 import { schema as feedItemSchema } from '../models/FeedItem'
+import { Schema } from '../models/schema'
 
 dotenv.config()
 
@@ -19,7 +20,7 @@ async function main() {
       await Promise.all(collections.map((collection) => collection.drop()))
     }
 
-    const collectionNames = [
+    const collectionNames: Array<{ name: string; schema: Schema<string> }> = [
       { name: 'FeedSource', schema: feedSourceSchema },
       {
         name: 'FeedItem',
