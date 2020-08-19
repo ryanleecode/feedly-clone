@@ -19,8 +19,6 @@ import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 import dotenv from 'dotenv-safe'
 import { MongoClient, ObjectID } from 'mongodb'
-import Mongo from 'mongodb'
-import { FeedItem } from './models/FeedItem'
 import { FeedSourceController } from './controllers/FeedController'
 import bodyParser from 'body-parser'
 import { pollFeedSources } from './jobs/pollFeedSources'
@@ -28,7 +26,6 @@ import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 
 dotenv.config()
-;(global as any).Mongo = Mongo
 
 interface IoTsTypes {
   withValidate: typeof withValidate
@@ -261,6 +258,7 @@ async function main() {
   rx.timer(0, 60000)
     .pipe(rxo.mergeMap(() => pollFeedSources({ db })))
     .subscribe({
+      next: console.log,
       complete: () => console.log('complete'),
     })
 

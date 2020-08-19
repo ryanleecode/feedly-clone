@@ -6,12 +6,15 @@ export const FeedItem = t.exact(
   t.intersection([
     t.type({
       _id: ObjectID,
+      feed_source_id: ObjectID,
       title: t.string,
       link: t.string,
       date: date,
     }),
     t.partial({
-      description: t.string,
+      content: t.unknown,
+      author: t.unknown,
+      image: t.unknown,
     }),
   ]),
 )
