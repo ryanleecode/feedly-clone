@@ -3,7 +3,7 @@ import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
 import { Cursor, Db } from 'mongodb'
 import { FeedSource } from '../models/FeedSource'
-import { flow, identity, pipe } from 'fp-ts/lib/function'
+import { constVoid, flow, identity, pipe } from 'fp-ts/lib/function'
 import RSSParser from 'rss-parser'
 import { Decoder, string } from 'io-ts'
 import * as ObE from 'fp-ts-rxjs/lib/ObservableEither'
@@ -41,45 +41,18 @@ export type Dependencies = {
   db: Db
 }
 
-export function pollFeedSources({ db }: Dependencies) {
-  const controller$ = new BehaviorSubject(0)
-
-  const cursorToStream = (cursor: Cursor<unknown>) => {
-    const next$ = () =>
-      pipe(
-        rx.from(cursor.hasNext()),
-        rxo.concatMap((hasNext) =>
-          hasNext ? rx.from(cursor.next()) : rx.EMPTY,
-        ),
-      )
-
-    return next$().pipe(rxo.expand(() => next$()))
-  }
-
-  return pipe(
-    controller$,
-    rxo.mergeMap(
-      (offset) =>
-        cursorToStream(
-          db.collection('FeedSource').find({}, { skip: offset, limit: 3 }),
-        ),
-      3,
-    ),
-    ObE.observableEither.fromObservable,
-    ObE.chain(
-      flow(
-        FeedSource.decode,
-        E.mapLeft(formatValidationErrors),
-        E.mapLeft((e) => e.join(',')),
-        TE.fromEither,
-        ObE.fromTaskEither,
-      ),
-    ),
+export function gogo({ db }: Dependencies) {
+  return flow(
+    FeedSource.decode,
+    E.mapLeft(formatValidationErrors),
+    E.mapLeft((e) => e.join(',')),
+    TE.fromEither,
+    ObE.fromTaskEither,
     ObE.chain((feedSource) =>
       pipe(
         TE.tryCatch(
           () => rssParser.parseURL(feedSource.url),
-          (err) => `${err}`,
+          (err) => `Parse URL Error: ${JSON.stringify(feedSource)} ${err}`,
         ),
         ObE.fromTaskEither,
         ObE.map((output) => output.items || []),
@@ -139,6 +112,35 @@ export function pollFeedSources({ db }: Dependencies) {
         ),
       ),
     ),
-    ObE.map((a) => a.result),
+    ObE.map(constVoid),
+  )
+}
+
+export function pollFeedSources({ db }: Dependencies) {
+  const controller$ = new BehaviorSubject(0)
+
+  const cursorToStream = (cursor: Cursor<unknown>) => {
+    const next$ = () =>
+      pipe(
+        rx.from(cursor.hasNext()),
+        rxo.concatMap((hasNext) =>
+          hasNext ? rx.from(cursor.next()) : rx.EMPTY,
+        ),
+      )
+
+    return next$().pipe(rxo.expand(() => next$()))
+  }
+
+  return pipe(
+    controller$,
+    rxo.mergeMap(
+      (offset) =>
+        cursorToStream(
+          db.collection('FeedSource').find({}, { skip: offset, limit: 3 }),
+        ),
+      3,
+    ),
+    ObE.observableEither.fromObservable,
+    ObE.chain(gogo({ db })),
   )
 }

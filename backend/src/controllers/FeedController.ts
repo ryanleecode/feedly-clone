@@ -54,13 +54,12 @@ export function router({ db }: Dependencies): Router {
             (err) => `${err}`,
           ),
         ),
-        H.ichain((a) => {
-          console.log(a)
-          return pipe(
+        H.ichain((a) =>
+          pipe(
             H.status(H.Status.OK),
             H.ichain(() => H.json({ a: 'asdf' }, () => 'encode json failed')),
-          )
-        }),
+          ),
+        ),
       ),
     ),
   )

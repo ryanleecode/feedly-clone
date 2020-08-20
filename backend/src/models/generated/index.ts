@@ -12,9 +12,9 @@ export const FeedItem = t.exact(
       date: date,
     }),
     t.partial({
-      content: t.unknown,
-      author: t.unknown,
-      image: t.unknown,
+      content: t.union([t.string, t.null]),
+      author: t.union([t.string, t.null]),
+      image: t.union([t.string, t.null]),
     }),
   ]),
 )

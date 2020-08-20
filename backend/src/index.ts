@@ -1,5 +1,5 @@
 import express from 'express'
-import { flow, pipe } from 'fp-ts/lib/function'
+import { flow, pipe, unsafeCoerce } from 'fp-ts/lib/function'
 import * as H from 'hyper-ts'
 import { toRequestHandler } from 'hyper-ts/lib/express'
 import * as t from 'io-ts'
@@ -18,12 +18,13 @@ import { getLinkPreview } from 'link-preview-js'
 import pmap from 'p-map'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
 import dotenv from 'dotenv-safe'
-import { MongoClient, ObjectID } from 'mongodb'
+import { ChangeEvent, Cursor, MongoClient, ObjectID } from 'mongodb'
 import { FeedSourceController } from './controllers/FeedController'
 import bodyParser from 'body-parser'
 import { pollFeedSources } from './jobs/pollFeedSources'
 import * as rx from 'rxjs'
 import * as rxo from 'rxjs/operators'
+import { onFeedSourceChanged } from './triggers/onFeedSourceChanged'
 
 dotenv.config()
 
@@ -255,10 +256,26 @@ async function main() {
 
   const db = client.db(`${process.env.DB_NAME}`)
 
+  const cursorToStream = (cursor: Cursor<unknown>) => {
+    const next$ = () =>
+      pipe(
+        rx.from(cursor.hasNext()),
+        rxo.concatMap((hasNext) =>
+          hasNext ? rx.from(cursor.next()) : rx.EMPTY,
+        ),
+      )
+
+    return next$().pipe(rxo.expand(() => next$()))
+  }
+
+  pipe(onFeedSourceChanged({ db })).subscribe({
+    next: console.log,
+  })
+
   rx.timer(0, 60000)
     .pipe(rxo.mergeMap(() => pollFeedSources({ db })))
     .subscribe({
-      next: console.log,
+      // next: console.log,
       complete: () => console.log('complete'),
     })
 

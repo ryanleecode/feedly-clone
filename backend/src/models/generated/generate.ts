@@ -57,6 +57,8 @@ function to<K extends string>(schema: MongoJSONSchema4<K>): t.TypeReference {
       return t.booleanType
     case 'date':
       return t.customCombinator('date', 'date')
+    case 'null':
+      return t.nullType
     case 'object':
       return toInterfaceCombinator(schema)
     case 'array':
@@ -72,8 +74,16 @@ function to<K extends string>(schema: MongoJSONSchema4<K>): t.TypeReference {
       )
 
     default:
-      return t.unknownType
+      break
   }
+
+  if (Array.isArray(schema.bsonType)) {
+    return t.unionCombinator(
+      schema.bsonType.map((type) => to<K>({ ...schema, bsonType: type })),
+    )
+  }
+
+  return t.unknownType
 }
 
 function asDeclaration(name: string) {
