@@ -256,18 +256,6 @@ async function main() {
 
   const db = client.db(`${process.env.DB_NAME}`)
 
-  const cursorToStream = (cursor: Cursor<unknown>) => {
-    const next$ = () =>
-      pipe(
-        rx.from(cursor.hasNext()),
-        rxo.concatMap((hasNext) =>
-          hasNext ? rx.from(cursor.next()) : rx.EMPTY,
-        ),
-      )
-
-    return next$().pipe(rxo.expand(() => next$()))
-  }
-
   pipe(onFeedSourceChanged({ db })).subscribe({
     next: console.log,
   })

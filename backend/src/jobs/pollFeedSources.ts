@@ -20,15 +20,9 @@ import { getLinkPreview } from 'link-preview-js'
 import sanitizeHTML from 'sanitize-html'
 import * as A from 'fp-ts/lib/Array'
 import { withTimeout } from 'fp-ts-contrib/lib/Task/withTimeout'
+import { Kind, URIS } from 'fp-ts/lib/HKT'
 
 const rssParser = new RSSParser()
-
-interface Order {
-  id: number
-  productName: string
-  price: string
-  purchaseDate: Date
-}
 
 /* export declare const db: Db
 
