@@ -1,0 +1,50 @@
+{
+  "name": "news-feed-app-backend",
+  "private": true,
+  "license": "UNLICENSED",
+  "version": "0.0.0",
+  "scripts": {
+    "lint": "eslint \"./api/**/*.ts\"",
+    "lint:fix": "eslint --fix \"./api/**/*.ts\"",
+    "format": "npx prettier --write './**/*.{ts,md}'",
+    "dev": "nexus dev",
+    "build": "nexus build",
+    "start": "node .nexus/build/api"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "date-fns": "^2.16.0",
+    "email-validator": "^2.0.4",
+    "fp-ts": "^2.8.2",
+    "fp-ts-contrib": "^0.1.18",
+    "fp-ts-rxjs": "^0.6.9",
+    "io-ts": "^2.2.10",
+    "link-preview-js": "^2.0.4",
+    "nexus": "^0.26.1",
+    "nexus-plugin-shield": "^0.2.0",
+    "rss-parser": "^3.9.0",
+    "rxjs": "^6.6.2",
+    "sanitize-html": "^1.27.4",
+    "ts-brand": "^0.0.2",
+    "type-fest": "^0.16.0",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "@prisma/cli": "^2.5.1",
+    "@prisma/client": "^2.5.1",
+    "@types/bcrypt": "^3.0.0",
+    "@types/jest": "^26.0.10",
+    "@types/sanitize-html": "^1.23.3",
+    "@types/uuid": "^8.3.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "eslint": "^7.7.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^23.20.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.1",
+    "ts-jest": "^26.3.0"
+  }
+}

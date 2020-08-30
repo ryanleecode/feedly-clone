@@ -1,9 +1,0 @@
-{
-  "watch": ["src"],
-  "ext": "ts",
-  "ignore": ["src/**/*.spec.ts"],
-  "events": {
-    "restart": "kill-port 3000"
-  },
-  "exec": "ts-node ./src/index.ts"
-}

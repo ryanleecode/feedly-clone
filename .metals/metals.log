@@ -1,0 +1,6 @@
+2020.08.29 20:39:00 INFO  started: Metals version 0.9.3 in workspace '/home/drd/Documents/Projects/nexus-tutorial' for client vscode.
+2020.08.29 20:39:02 INFO  time: initialize in 1.73s
+2020.08.29 20:39:21 WARN  no build tool detected in workspace '/home/drd/Documents/Projects/nexus-tutorial'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2020.08.30 10:19:30 INFO  started: Metals version 0.9.3 in workspace '/home/drd/Documents/Projects/nexus-tutorial' for client vscode.
+2020.08.30 10:19:33 INFO  time: initialize in 2.93s
+2020.08.30 10:19:37 WARN  no build tool detected in workspace '/home/drd/Documents/Projects/nexus-tutorial'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
