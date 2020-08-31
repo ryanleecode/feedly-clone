@@ -4,3 +4,11 @@
 2020.08.30 10:19:30 INFO  started: Metals version 0.9.3 in workspace '/home/drd/Documents/Projects/nexus-tutorial' for client vscode.
 2020.08.30 10:19:33 INFO  time: initialize in 2.93s
 2020.08.30 10:19:37 WARN  no build tool detected in workspace '/home/drd/Documents/Projects/nexus-tutorial'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+2020.08.30 18:47:51 INFO  started: Metals version 0.9.3 in workspace '/home/drd/Documents/Projects/nexus-tutorial' for client vscode.
+2020.08.30 18:47:54 INFO  time: initialize in 2.4s
+2020.08.30 18:47:58 WARN  no build tool detected in workspace '/home/drd/Documents/Projects/nexus-tutorial'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. 
+Aug. 30, 2020 9:47:54 P.M. org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint notify
+INFO: Unsupported notification method: $/setTraceNotification
+Aug. 30, 2020 9:47:56 P.M. org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint notify
+INFO: Unsupported notification method: $/setTraceNotification
+2020.08.30 21:48:10 INFO  shutting down Metals

@@ -24,15 +24,35 @@ The `JSON` scalar type represents JSON objects as specified by [ECMA-404](http:/
 """
 scalar Json
 
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type LoginOutput {
+  token: String
+}
+
 type Mutation {
-  signup(input: SignupInput!): Boolean!
+  login(input: LoginInput!): LoginOutput!
+  signup(input: SignupInput!): SignupOutput!
 }
 
 type Query {
   feed: [FeedItem!]
 }
 
+type SignupError {
+  error: String
+}
+
 input SignupInput {
   email: String!
   password: String!
+}
+
+union SignupOutput = SignupError | SignupValidationError
+
+type SignupValidationError {
+  errors: [String!]
 }

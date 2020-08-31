@@ -1,10 +1,18 @@
 import { Brand, make } from 'ts-brand'
-import { none, Option, some } from 'fp-ts/lib/Option'
-import emailValidator from 'email-validator'
+
+import { isEmail } from 'class-validator'
+import { pipe } from 'fp-ts/lib/function'
+
+import * as D from 'io-ts/lib/Decoder'
 
 export type Email = Brand<string, 'Email'>
 
 const Email = make<Email>()
 
-export const validate = (email: string): Option<Email> =>
-  emailValidator.validate(email) ? some(Email(email)) : none
+export const is = (email: string): email is Email => isEmail(email)
+
+export const decoder = pipe(
+  D.string,
+  D.refine(is, 'Email'),
+  D.withMessage((i) => `\"${i}\" must be a well formed email`),
+)

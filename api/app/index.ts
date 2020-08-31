@@ -35,38 +35,46 @@
  */
 
 import { sequenceS } from 'fp-ts/lib/Apply'
-import { on, schema, use } from 'nexus'
-import {
-  absurd,
-  constVoid,
-  flow,
-  pipe,
-  hole,
-  unsafeCoerce,
-} from 'fp-ts/lib/function'
+import { on, schema } from 'nexus'
+import { absurd, pipe, unsafeCoerce } from 'fp-ts/lib/function'
 import * as R from 'fp-ts/lib/Reader'
 import * as Prisma from '@prisma/client'
+import * as ObE from 'fp-ts-rxjs/lib/ObservableEither'
 import RSSParser from 'rss-parser'
-import { shield, rule, deny, not, and, or } from 'nexus-plugin-shield'
+import { shield, rule } from 'nexus-plugin-shield'
 import * as t from 'io-ts'
 
-import * as FeedSourceRepository from './repository/interpreter/FeedSourceRepository'
-import * as FeedItemRepository from './repository/interpreter/FeedItemRepository'
-import * as WebFeedItemRepository from './repository/interpreter/WebFeedItemRepository'
-import * as UserRepository from './repository/interpreter/UserRepository'
+import * as FeedSourceRepository from '../repository/interpreter/FeedSourceRepository'
+import * as FeedItemRepository from '../repository/interpreter/FeedItemRepository'
+import * as WebFeedItemRepository from '../repository/interpreter/WebFeedItemRepository'
+import * as UserRepository from '../repository/interpreter/UserRepository'
 
-import * as ObE from 'fp-ts-rxjs/lib/ObservableEither'
-import * as FeedService from './service/FeedService'
-import * as UserService from './service/UserService'
+import * as FeedService from '../service/FeedService'
+import * as UserService from '../service/UserService'
 import * as PasswordService from './service/PasswordService'
 
+/**
+ * Because we are passing objects rather than classes to Nexus context, it
+ * doesn't know how to import our types correctly during code generation.
+ * This is a hack to get it to import our types.
+ */
 const __UNSAFE_IMPORT__: ObE.ObservableEither<never, never> &
   UserService.SignupOperation &
-  FeedService.RefreshOperation &
-  PasswordService.HashOperation &
-  PasswordService.CompareOperation = unsafeCoerce(constVoid())
+  FeedService.RefreshOperation = unsafeCoerce(absurd)
+
+/**
+ * Uncomment the line below and use `Go To Definition` to see the generated types.
+ */
+// import '@types/typegen-nexus-context/index'
 
 on.start(() => {
+  /**
+   * This is our dependency tree.
+   *
+   * We use `(d) => ({ ... })` syntax rather than using type inference with
+   * `sequenceS(R.reader)({ ... })` because the latter does not perform type
+   * widening.
+   */
   const dependencies = pipe(
     {
       db: new Prisma.PrismaClient(),
