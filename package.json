@@ -1,0 +1,52 @@
+{
+  "name": "feedly-clone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:reflection && tsc",
+    "build:reflection": "NEXUS_SHOULD_EXIT_AFTER_REFLECTION=true ts-node api/app",
+    "dev": "ts-node-dev --transpile-only api/app",
+    "dev:migrate": "prisma migrate save --experimental -c && prisma migrate up --experimental -c",
+    "dev:typecheck": "tsc --watch --noEmit",
+    "format": "npx prettier --write './**/*.{ts,md}'",
+    "start": "NODE_ENV=production node .nexus/build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nexus/schema": "^0.18.0",
+    "@prisma/client": "^2.10.0",
+    "apollo-server-fastify": "^3.0.0-alpha.3",
+    "chalk": "^4.1.0",
+    "cross-port-killer": "^1.2.1",
+    "date-fns": "^2.16.1",
+    "dotenv": "^8.2.0",
+    "fastify": "^3.8.0",
+    "fp-ts": "^2.8.6",
+    "graphql": "^15.4.0",
+    "io-ts": "^2.2.12",
+    "logging-ts": "^0.3.4",
+    "nexus-plugin-prisma": "^0.23.1"
+  },
+  "devDependencies": {
+    "@nexus/typescript-language-service": "0.0.0",
+    "@prisma/cli": "^2.11.0",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^14.14.7",
+    "@typescript-eslint/eslint-plugin": "^4.7.0",
+    "@typescript-eslint/parser": "^4.7.0",
+    "eslint": "^7.13.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-functional": "^3.1.0",
+    "eslint-plugin-jest": "^24.1.3",
+    "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^26.6.3",
+    "prettier": "^2.1.2",
+    "ts-jest": "^26.4.4",
+    "ts-node": "^9.0.0",
+    "ts-node-dev": "^1.0.0",
+    "typescript": "^4.0.5"
+  }
+}

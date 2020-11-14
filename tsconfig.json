@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "api",
+    "strict": true,
+    "lib": ["esnext"],
+    "plugins": [
+      {
+        "name": "nexus/typescript-language-service"
+      }
+    ],
+    "esModuleInterop": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
