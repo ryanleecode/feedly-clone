@@ -1,6 +1,6 @@
+import * as path from 'path'
 import * as NexusSchema from '@nexus/schema'
 import { nexusPrisma } from 'nexus-plugin-prisma'
-import * as path from 'path'
 
 export const schema = NexusSchema.makeSchema({
   shouldExitAfterGenerateArtifacts:

@@ -7,8 +7,11 @@ extends:
     'plugin:prettier/recommended',
     'plugin:functional/external-recommended',
     'plugin:functional/recommended',
+    'plugin:import/warnings',
+    'plugin:import/errors',
+    'plugin:import/typescript',
   ]
-plugins: ['@typescript-eslint', 'jest', 'prettier', 'functional']
+plugins: ['@typescript-eslint', 'jest', 'prettier', 'functional', 'import']
 env:
   browser: false
   es6: true
@@ -38,3 +41,5 @@ rules:
     - off
   functional/no-expression-statement:
     - off
+  import/order:
+    - error
