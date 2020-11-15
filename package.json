@@ -9,6 +9,8 @@
     "dev": "ts-node-dev --transpile-only api/app",
     "dev:migrate": "prisma migrate save --experimental -c && prisma migrate up --experimental -c",
     "dev:typecheck": "tsc --watch --noEmit",
+    "lint": "eslint \"api/**/*.ts\"",
+    "lint:fix": "eslint --fix \"api/**/*.ts\"",
     "format": "npx prettier --write './**/*.{ts,md}'",
     "start": "NODE_ENV=production node .nexus/build"
   },
