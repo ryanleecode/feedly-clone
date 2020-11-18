@@ -7,9 +7,9 @@ import fastify from 'fastify'
 import { kill } from 'cross-port-killer'
 import dotenv from 'dotenv'
 
-import { server } from './server'
-import { getLogger } from './log'
-import * as Env from './env'
+import { server } from '../server'
+import { getLogger } from '../log'
+import * as Env from '../env'
 
 const log = getLogger('feedly_clone::app')
 
