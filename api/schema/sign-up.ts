@@ -12,7 +12,6 @@ import * as T from 'fp-ts/lib/Task'
 import { NexusGenRootTypes } from 'nexus-typegen'
 import { flow, pipe } from 'fp-ts/lib/function'
 import * as Email from '../model/email'
-import { match } from '../adt'
 import { UserId } from '../model'
 import { SignUpError as UserSignUpError } from '../service'
 import { getLogger } from '../log'
@@ -138,22 +137,24 @@ export const signUp: SignUp = (root, { input: unknownInput }, ctx) => {
       pipe(
         ctx.userService.signUp(input),
         handleError(
-          match<UserSignUpError, TE.TaskEither<UserSignUpError, void>>({
+          UserSignUpError.matchStrict({
             UnknownSignUpError: (err) =>
               pipe(logger.error('Failed to sign up user', err.value), (io) =>
                 TE.fromIO(io),
               ),
-            _: TE.left,
+            EmailTakenSignUpError: TE.left,
           }),
         ),
         TE.mapLeft(
-          match<UserSignUpError, SignUpErrors>({
-            EmailTakenSignUpError: NewSignUpUserAlreadyExistsError({
-              message: 'A user with this email already exists',
-              meta: [input.email],
-            }),
-            _: NewSignUpUnknownError,
-          }),
+          UserSignUpError.match(
+            {
+              EmailTakenSignUpError: NewSignUpUserAlreadyExistsError({
+                message: 'A user with this email already exists',
+                meta: [input.email],
+              }),
+            },
+            NewSignUpUnknownError,
+          ),
         ),
       ),
     ),

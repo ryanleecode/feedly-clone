@@ -10,7 +10,7 @@ import { sequenceS } from 'fp-ts/lib/Apply'
 import { UserRepository } from '../user-repository'
 import { UserId } from '../../model'
 import { PasswordService } from '../../app/service'
-import { withCause, withMeta, of as CErrorOf } from '../../cerror'
+import { withCause, fromError, withMeta, of as CErrorOf } from '../../cerror'
 
 export type Deps = {
   readonly db: PrismaClient
@@ -40,7 +40,11 @@ const create: Create = ({ db, passwordService }) => (input) => {
       pipe(
         TE.tryCatch(() => db.user.create({ data: user }), E.toError),
         TE.mapLeft(
-          flow(withCause, I.ap(CErrorOf('Failed to insert user into db'))),
+          flow(
+            fromError,
+            withCause,
+            I.ap(CErrorOf('Failed to insert user into db')),
+          ),
         ),
       ),
     ),
@@ -55,6 +59,7 @@ const exists: Exists = ({ db }) => ({ email, id }) => {
     TE.tryCatch(() => db.user.count({ where: { email, id } }), E.toError),
     TE.mapLeft(
       flow(
+        fromError,
         withCause,
         I.ap(CErrorOf(`Failed to check if user with email ${email} exists`)),
         withMeta({ email, id }),
