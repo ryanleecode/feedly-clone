@@ -3,8 +3,8 @@ import * as TE from 'fp-ts/lib/TaskEither'
 import * as I from 'fp-ts/lib/Identity'
 import { summonFor } from '@morphic-ts/batteries/lib/summoner-ESBST'
 import * as t from 'io-ts'
-import { CError, withCause, withMeta, of as CErrorOf } from '../cerror'
-import { Email, UserId } from '../model'
+import { CError, withCause, withMeta, of as CErrorOf } from '../../cerror'
+import { Email, UserId } from '../../model'
 
 export type SignUpOperationInput = {
   readonly email: Email

@@ -2,8 +2,8 @@ import { sequenceS } from 'fp-ts/lib/Apply'
 import { constVoid, identity, not, pipe } from 'fp-ts/lib/function'
 import { reader, Reader } from 'fp-ts/lib/Reader'
 import * as TE from 'fp-ts/lib/TaskEither'
-import { CError } from '../../cerror'
-import { UserRepository } from '../../repository'
+import { CError } from '../../../cerror'
+import { UserRepository } from '../../../repository'
 import {
   SignUpError,
   UnknownSignUpError,

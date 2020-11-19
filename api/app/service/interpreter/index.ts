@@ -5,5 +5,6 @@
  */
 
 import { PasswordServiceReader } from './password-service'
+import { UserServiceReader } from './user-service'
 
-export { PasswordServiceReader }
+export { PasswordServiceReader, UserServiceReader }

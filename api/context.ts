@@ -1,10 +1,11 @@
 import { PrismaClient } from '@prisma/client'
-import { PasswordService } from './app/service'
-import { PasswordServiceReader } from './app/service/interpreter'
+import { PasswordService, UserService } from './app/service'
+import {
+  PasswordServiceReader,
+  UserServiceReader,
+} from './app/service/interpreter'
 import { UserRepository } from './repository'
 import { UserRepositoryReader } from './repository/interpreter'
-import { UserService } from './service'
-import { UserServiceReader } from './service/interpreter'
 
 const db = new PrismaClient()
 

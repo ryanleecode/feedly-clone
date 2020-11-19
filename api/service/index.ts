@@ -3,5 +3,3 @@
  *
  * @packageDocumentation
  */
-
-export * from './user-service'
